@@ -1,0 +1,193 @@
+// $Id: params.hoc,v 1.114 2011/02/10 20:24:02 samn Exp $
+
+//* batch params
+jrsvn_INTF6=1e3
+jrsvd_INTF6=2e4
+
+//* general params
+declare("mytstop",3e3)
+tstop = mytstop
+v_init=1000 // so keep v's as set randomly
+
+//* ARTC params
+mg_INTF6=1.6
+EAM_INTF6=65 // these are deviations above RMP
+ENM_INTF6=90
+EGA_INTF6=-15
+seadsetting_INTF6 = 2 // fixed inter-cell weights
+
+//* Declarations
+
+dosetexvals=name_declared("wmatex")==0 // whether to set values in wmatex,ratex
+
+sprint(tstr,"d[%d][%d]",CTYPi,STYPi)
+declare("wmatex",tstr,"ratex",tstr) // weights,avg. rate of external inputs
+
+declare("fih","o[1]","nstim","o[1]")
+vseed_stats(223481)
+rdm.MCellRan4(seed_stats)
+
+declare("vsgrpp",new Vector(CTYPi)) //% X 100 of cells of a type to stim, used in stim,sgrcells
+declare("vsgrsidx",new Vector(CTYPi)) //startind index of cell to stim when using topstim
+declare("sgrdur",mytstop) //duration of stim
+declare("inputseed",1234)
+declare("sgrhzE",300,"sgrhzI",125,"sgrhzNM",50,"sgron",1,"sgrdel",0)
+declare("sgrhzdel",0.2)//variance in sgrhz for an INTF6
+declare("EXGain",15) // gain for external inputs
+declare("lcstim",new List()) // list of CSTIM objects
+declare("nqwmex",new NQS("ct","sy","w","rate")) // NQS passed to CSTIM init
+{sprint(tstr,"d[%d]",numcols) declare("EIBalance",tstr)} // whether to balance rate of external E/I inputs
+declare("usens",0) // whether to use NetStims in CSTIM
+
+SCAHP=SCTH=1
+
+//* setwmatex - set weights of external inputs to INTF6s
+proc setwmatex () {  local ct,sy
+  if(dosetexvals) {
+    for ct=0,CTYPi-1 for sy=0,STYPi-1 wmatex[ct][sy]=0
+    for ct=0,CTYPi-1 {
+      ratex[ct][AM2]=sgrhzE
+      ratex[ct][NM2]=sgrhzNM
+      ratex[ct][GA2]=ratex[ct][GA]=sgrhzI
+      if(IsLTS(ct)) {
+        wmatex[ct][AM2] = 0.2
+        wmatex[ct][NM2] = 0.025
+        wmatex[ct][GA]=wmatex[ct][GA2]=0.125
+      } else {
+        wmatex[ct][NM2] = 0.05   
+        wmatex[ct][AM2] = 0.25 
+        wmatex[ct][GA]=wmatex[ct][GA2]=0.125
+      }
+      for sy=0,STYPi-1 wmatex[ct][sy] *= EXGain // apply gain control
+    }    
+  }
+  nqwmex.clear()
+  for ct=0,CTYPi-1 for sy=0,STYPi-1 if(wmatex[ct][sy]) nqwmex.append(ct,sy,wmatex[ct][sy],ratex[ct][sy])
+}
+
+//* RSparams - setup regular spiking excitatory cells
+proc RSparams () { local ii,jj localobj xo,co
+  for ltr(co,lcol) for case(&ii,E2,E4,E5R,E5B,E6) if(co.numc[ii]>0) {
+    for jj=co.ix[ii],co.ixe[ii] { xo=co.ce.o(jj)
+      
+      xo.ahpwt=1
+      xo.tauahp=400
+      xo.RMP= -65
+      xo.VTH= -40 
+      xo.refrac=  50
+      xo.Vblock= -25
+      
+      xo.tauGA  = 10
+      xo.tauGA2 = 20
+      xo.tauAM2 = 20
+      xo.tauNM2 = 300
+      
+      xo.tauRR = 8 
+      xo.RRWght = .75 
+    }
+  }
+}
+
+//* LTSparams - setup low-threshold spiking interneurons
+proc LTSparams () { local ii,jj localobj xo,co
+  for ltr(co,lcol) for case(&ii,I2L,I4L,I5L,I6L) if(co.numc[ii]>0) {
+    for jj=co.ix[ii],co.ixe[ii] { xo=co.ce.o(jj)  
+      xo.ahpwt=0.5
+      xo.refrac= 10
+      xo.tauahp=50
+      xo.Vblock=-10    
+      xo.RMP = -65
+      xo.VTH= -47
+
+      xo.tauGA  = 10
+      xo.tauGA2 = 20
+      xo.tauAM2 = 20
+      xo.tauNM2 = 300
+      
+      xo.tauRR = 1.5
+      xo.RRWght = 0.25
+    }
+  }
+}
+
+//* FSparams - setup fast spiking interneurons
+proc FSparams () { local ii,jj localobj xo,co
+  for ltr(co,lcol) for case(&ii,I2,I2C,I4,I5,I6,I6C) if(co.numc[ii]>0) {
+    for jj=co.ix[ii],co.ixe[ii] { xo=co.ce.o(jj)    
+      xo.ahpwt=0.5
+      xo.refrac= 10
+      xo.tauahp=50
+      xo.Vblock=-10    
+      xo.RMP = -63
+      xo.VTH= -40
+
+      xo.tauGA  = 10
+      xo.tauGA2 = 20
+      xo.tauAM2 = 20
+      xo.tauNM2 = 300
+      
+      xo.tauRR = 1.5
+      xo.RRWght = 0.25
+    }
+  }
+}
+
+//* setNMParams(col,celltype,mg0 factor,maxnmc) 
+proc setNMParams () { local ct,mgf,maxnmc,idx localobj col,ce
+  col=$o1 ce=col.ce ct=$2 mgf=$3 maxnmc=$4
+  for idx=col.ix[ct],col.ixe[ct] {
+    ce.o(idx).mg0 = 3.57 * mgf
+    ce.o(idx).maxnmc = maxnmc
+  }
+}
+
+//* setNMIParams(col[,mg0 factor,maxnmc])
+proc setNMI () { local mgf,maxnmc,ct localobj col
+  col=$o1
+  if(numarg()>1) mgf=$2 else mgf=1 
+  if(numarg()>2) maxnmc=$3 else maxnmc=1
+  for ct=0,CTYPi-1 if(ice(ct)) setNMParams(col,ct,mgf,maxnmc)
+}
+
+//* schizon - turn on schizo params
+proc schizon () { local c,ct
+  for c=0,numcols-1 {
+    setNMI(col[c],0.75,0.75)
+    setNMParams(col[c],E4,1.25,1.25)
+    for case(&ct,E2,E5R,E5B) setNMParams(col[c],ct,0.75,0.9)
+  }
+}
+//* schizon - turn off schizo params
+proc schizoff () { local c,ct
+  for c=0,numcols-1 {
+    setNMI(col[c],1,1)
+    setNMParams(col[c],E4,1,1)
+    for case(&ct,E2,E5R,E5B) setNMParams(col[c],ct,1,1)
+  }
+}
+
+
+proc rewt () {} // nothing needs to be done since copy directly into wd0[][][]
+
+//* setcstim - set external inputs to COLUMNs using CSTIM
+proc setcstim () { local i,seed
+  for i=0,lcol.count-1 {
+    if(dbgcols)seed=inputseed else seed=(i+1)*inputseed
+    lcstim.append(new CSTIM(lcol.o(i),seed,sgrdur,sgrhzdel,EIBalance[i],usens))
+    lcstim.o(lcstim.count-1).setwm(nqwmex)
+    lcstim.o(lcstim.count-1).setspks()
+  }
+  print "set external inputs"
+}
+
+//* function calls
+
+setwmatex()
+
+{RSparams() LTSparams() FSparams()}
+
+if (!jcn) rjinet() //means no jitcon
+
+if(disinhib) inhiboff()
+
+setcstim()

@@ -1,0 +1,104 @@
+// $Id: filtutils.hoc,v 1.6 2010/10/11 18:34:24 samn Exp $ 
+
+
+//* mkgauss(vector,average,standard-dev)
+proc mkgauss () { local i,x,sz,mu,sd localobj vin
+  vin=$o1 sz=vin.size mu=$2 sd=$3
+  for vtr(&x,vin,&i) vin.x(i) = exp( -(x-mu)^2 / (2*sd*sd) )
+  vin.mul( 1 / (sd*sqrt(2*PI)) )
+}
+
+//* mktriangwin(vec,size - should be odd,[skip the wraparound])
+proc mktriangwin () { local i,j,sz localobj vin
+  vin=$o1 vin.resize($2)
+  vin.x(int($2/2))=1
+  j=1 sz=1/(vin.size/2)
+  for (i=int($2/2)-1;i>=0;i-=1) {
+    vin.x(i)=j
+    j-=sz
+  }
+  j=1
+  for i=int($2/2)+1,vin.size-1 {
+    vin.x(i)=j
+    j-=sz
+  }
+  vin.div(vin.sum)
+  if(numarg()>2) return
+  vin.wraparound(vin.size)
+}
+
+//* mkgaussfilt(vec,stdev[,vx])
+proc mkgaussfilt () { local sd,minx,maxx,dx,a localobj vin,vx
+  vin=$o1 sd=$2
+  if(numarg()>2) {vx=$o3 vin.resize(0) vin.copy(vx)}
+  mkgauss(vin,0,sd)
+  vin.wraparound(vin.size)
+  vin.div(vin.sum)
+  dealloc(a)
+}
+
+//* dofilt(vsignal,vwindow) - filters with convlv
+proc dofilt () { local a,i localobj vsig,vwin,vtmp
+  a=allocvecs(vtmp) vsig=$o1 vwin=$o2 sz=vsig.size
+  vtmp.convlv(vsig,vwin)
+  vsig.copy(vtmp)
+  vsig.resize(sz) // make sure size doesn't change
+  dealloc(a)  
+}
+
+//* triangfilt(vin,filtsize) - run a triangle filter
+proc triangfilt () { local a localobj vin,vwin
+  vin=$o1
+  a=allocvecs(vwin)
+  mktriangwin(vwin,$2) // make the window
+  dofilt(vin,vwin) // do the filtering
+  dealloc(a)
+}
+
+//* boxfilt(vin,filtsize) - run a box(moving average) filter
+proc boxfilt () { local a localobj vin,vwin
+  vin=$o1
+  a=allocvecs(vwin)
+  {vwin.resize($2) vwin.fill(1) vwin.div(vwin.size)} // make the window
+  dofilt(vin,vwin) // do the filtering
+  dealloc(a)
+}
+
+//* gaussfilt(vin,stdev,vx) - run a gaussian filter - vx is x-values used to make gaussian
+proc gaussfilt () {  local a,sd localobj vin,vwin,vx
+  vin=$o1 sd=$2 vx=$o3
+  a=allocvecs(vwin)
+  mkgaussfilt(vwin,sd,vx) // make the window
+  dofilt(vin,vwin) // do the filtering
+  dealloc(a)
+}
+
+//* myfilt(code,vec) - code:0=gauss,1=triangle,2=box
+proc myfilt () { local a localobj vx
+  if($1==0) {
+    a=allocvecs(vx)
+    vx.indgen(-3,3,.03)
+    gaussfilt($o2,stdg,vx)
+  } else if($1==1) {
+    triangfilt($o2,winsz)
+  } else if($1==2) {
+    boxfilt($o2,winsz)
+  }
+}
+
+//* resample(vec,new size) - resample a vec to new size using linear interpolation
+proc resample(){ local newsz,idxdest,idxsrc,val,fctr,frac localobj vtmp
+  {vtmp=new Vector($2) fctr=$o1.size/$2  vtmp.x(0)=$o1.x(0) idxsrc=fctr}
+  for(idxdest=1;idxdest<$2-1;idxdest+=1){
+    idxsrc = idxdest * fctr
+    frac = idxsrc - int(idxsrc)
+    idxsrc = int(idxsrc)
+    if(idxsrc+1>=$o1.size){
+      vtmp.x(idxdest) = $o1.x(idxsrc)
+      continue
+    }
+    val = (1-frac) * $o1.x(idxsrc) + frac * $o1.x(idxsrc+1)
+    vtmp.x(idxdest) = val
+  }
+  {vtmp.x($2-1)=$o1.x($o1.size-1) $o1.resize($2) $o1.copy(vtmp)}
+}
