@@ -13,11 +13,15 @@ proc chop () { sfunc.left($s1,sfunc.len($s1)-1) }
 tmpfile = new File()
 simname = "sim"      // helpful if running multiple simulations simultaneously
 runnum = 1           // updated at end of run
-system("uname -m",uname)  // keep track of type of machine for byte compatibility
-chop(uname)
-system("date +%y%b%d",datestr)
-chop(datestr) // may prefer to downcase later
-sprint(output_file,"data/%s.%02d",datestr,runnum)  // assumes a subdir called data
+uname="mswin_or_MAC" // used if not unix
+datestr="unknown_date" // used if not unix
+if (unix_mac_pc()==1) {  // true if unix
+  system("uname -m",uname)  // keep track of type of machine for byte compatibility
+  chop(uname)
+  system("date +%y%b%d",datestr)
+  chop(datestr) // may prefer to downcase later
+}
+  sprint(output_file,"data/%s.%02d",datestr,runnum)  // assumes a subdir called data
 if (unix_mac_pc()==1) osname = "Linux" else if (unix_mac_pc()==2) { 
   osname = "Mac" } else if (unix_mac_pc()==3) osname = "PC"
 printStep = 0.25 // time interval for saving to vector

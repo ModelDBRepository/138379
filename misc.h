@@ -5,7 +5,8 @@
 #include <limits.h> /* contains LONG_MAX */
 #include <time.h>
 #include <sys/time.h> 
-#include <values.h>
+// #include <values.h>  use limits.h above instead
+#include <float.h> // added to declare DBL_MAX etc...
 #include <pthread.h>
 
 #if !defined(t)
