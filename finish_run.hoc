@@ -1,0 +1,61 @@
+// finish_run.hoc
+
+objref nqp[numcols][2],nqps[numcols][2] // stores NQS objects containing PSD of multiunit activity vectors
+
+//nrnpsd - calculates PSD and returns as an NQS object
+obfunc nrnpsd () { local sampr localobj vec,nqp
+  vec=$o1 sampr=$2
+  nqp=new NQS("f","pow")
+  nqp.v[1].spctrm(vec)
+  nqp.v.indgen(0,sampr/2,(sampr/2)/nqp.v[1].size)
+  nqp.v.resize(nqp.v[1].size)
+  return nqp
+}
+
+
+// getpsd - gets and draws raw/smoothed PSD in two separate graphs
+proc getpsd () { local i,j,I,boxsz
+  print "calculating/drawing MUA PSD..."
+  if(drawraw) myg[2]=new Graph()
+  myg[3]=new Graph()
+  for i=0,numcols-1 for I=0,1 {
+    {vec.resize(nqCO.v.size) vec.fill(0)}
+    for j=0,CTYPi-1 if(col.numc[j] && ice(j)==I) vec.add(nqCTY[i].v[j]) // forms E and I MUA separately
+    vec.sub(vec.mean) // remove mean
+
+//    {nqsdel(nqp[i][I]) nqp[i][I]=pypsd(vec,sampr)} // get PSD using python matplotlib psd function -- requires matplotlib
+// and NEURON compiled with python. matplotlib available here: http://http://matplotlib.sourceforge.net/. pypsd function in pywrap.hoc
+
+//    {nqsdel(nqp[i][I]) nqp[i][I]=pypmtm(vec,sampr)} // use python mtspec library pmtm function -- requires python mtspec install
+// and NEURON compiled with python. python mtspec available here: http://pypi.python.org/pypi/mtspec. pypmtm function in pywrap.hoc
+
+    {nqsdel(nqp[i][I]) nqp[i][I]=nrnpsd(vec,sampr)}//get PSD with NEURON spctrm Vector function: default since in all NEURONs
+    if(drawraw){nqp[i][I].v[1].plot(myg[2],nqp[i][I].v[0],I+2,1) myg[2].exec_menu("View = plot")} // plot raw PSD
+
+    boxsz = MAXxy(boxszdef*nqp.v.size/512,4) // smoothing level for PSD box filter
+
+    {nqsdel(nqps[i][I])  nqps[i][I]=new NQS() nqps[i][I].cp(nqp[i][I])} // get/plot smoothed PSD
+    {boxfilt(nqps[i][I].v[1],boxsz) nqps[i][I].v[1].plot(myg[3],nqps[i][I].v[0],I+2,1) myg[3].exec_menu("View = plot")}
+  }
+}
+
+proc finish_run() {
+
+run() // run simulation of 9 columns for mytstop milliseconds
+
+{skipsnq=0 binsz=5 sampr=1e3/binsz initAllMyNQs()} // setup spike counts per time
+
+//draw raster from 1 column
+print "drawing raster..."
+{gg() gvmarkflag=1 snq.marksym="O" snq.gr("id","t",0,1,4) myg[0]=g gvmarkflag=0 myg[0].size(1e3,2e3,0,470) rasterlines()}
+
+// draw LFP from 1 column
+print "drawing LFP..."
+{myg[1]=new Graph() nqLFP.v.sub(nqLFP.v.mean) nqLFP.v.label("LFP") nqLFP.v.plot(myg[1],vdt_INTF6) myg[1].size(1e3,2e3,-1500,3000)}
+
+
+//variables for controlling getpsd
+ drawraw = 0 // whether to draw raw PSD -- set it before calling getpsd()
+ boxszdef = 21 // default PSD smoothing for 20 s sim -- set it before calling getpsd()
+getpsd()
+}
