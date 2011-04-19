@@ -54,3 +54,4 @@ References:
   http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/abstract
 
 20110418 Updated to run on mswin.  -ModelDB Administrator
+20110419 Additional button window for autolaunch. -ModelDB Administrator
