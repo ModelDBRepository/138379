@@ -51,7 +51,7 @@ typedef struct VPT {
  unsigned int  id;
  unsigned int  size;
  unsigned int  p;
- void*    vv[NSV];
+ IvocVect* vv[NSV];
  double* vvo[NSV];
 } vpt;
 
@@ -62,8 +62,8 @@ typedef struct POSTGRP { // postsynaptic group
   unsigned int col; // COLUMN ID
   double* jrid; // for recording SPIKES
   double* jrtv;
-  void* jridv;
-  void* jrtvv;
+  IvocVect* jridv;
+  IvocVect* jrtvv;
   unsigned int jtpt,jtmax,jrmax; 
   unsigned long jri,jrj;
   unsigned long spktot,eventtot;
@@ -150,7 +150,7 @@ static int cty[CTYPp], process, ctymap[CTYPp];
 static int CTYN, CTYPi, STYPi, dscrsz; // from labels.hoc
 static double qlimit, *dscr;
 FILE *wf1, *wf2, *tf;
-void*    ww[NSW];
+IvocVect* ww[NSW];
 double* wwo[NSW];
 static int AM=0, NM=1, GA=2, GB=3, AM2=4, NM2=5, GA2=6, SU=3, IN=4, DP=2; // from labels.hoc
 static double wts[13],hsh[13];  // for jitcons to use as a junk pointer
@@ -284,7 +284,7 @@ CONSTRUCTOR {
     if (ifarg(2)) { lty=(int) *getarg(2); } else { lty= -1; } // type
     if (ifarg(3)) { lin=(int) *getarg(3); } else { lin= -1; } // inhib
     if (ifarg(4)) { lco=(int) *getarg(4); } else { lco= -1; } // column
-    _p_sop = (void*)ecalloc(1, sizeof(id0)); // important that calloc sets all flags etc to 0
+    _p_sop = (double*)ecalloc(1, sizeof(id0)); // important that calloc sets all flags etc to 0
     ip = IDP;
     ip->id=lid; ip->type=lty; ip->inhib=lin; ip->col=lco; 
     ip->pg=0x0; ip->dvi=0x0; ip->sprob=0x0;  ip->syns=0x0; ip->wgain=0x0; ip->peconv=0x0; ip->syw1 = ip->syw2 = 0x0;
@@ -295,7 +295,7 @@ CONSTRUCTOR {
     pathbeg=-1;
     slowset=0; 
     ip->gid = nextGID++; // global identifier
-    process=(int)getpid();
+    process=hoc_pid();
     CNAME[SU]="SU"; CNAME[DP]="DP"; CNAME[IN]="IN";
     if (installed==2.0 && ip->pg) { // jitcondiv was previously run
       sz=ivoc_list_count(ip->pg->ce);
@@ -1313,7 +1313,7 @@ FUNCTION getconv () {
 VERBATIM 
 {
   int iarg,i,j,k,dvt,sz,prfl,getactive; double *x,flag;
-  void* voi; Point_process **das; id0 *pp;
+  IvocVect* voi; Point_process **das; id0 *pp;
   ip=IDP; pg=ip->pg; // this should only be called after jitcondiv()
   sz=ip->dvt; //  // assume conv similar to div
   getactive=0;
@@ -1407,11 +1407,12 @@ FUNCTION rddvi () {
   for(iCell=0;iCell<pg->cesz;iCell++){
     if(iCell%1000==0)printf("%d ",iCell);
     lop(pg->ce,iCell);
-    fread(&qp->id,sizeof(unsigned int),1,fp); // read id
-    fread(&qp->type,sizeof(unsigned char),1,fp); // read type id
-    fread(&qp->col,sizeof(unsigned int),1,fp); // read column id
-    fread(&qp->dead,sizeof(unsigned char),1,fp); // read alive/dead status
-    fread(&qp->dvt,sizeof(unsigned int),1,fp); // read divergence size
+    int ret;
+    ret = fread(&qp->id,sizeof(unsigned int),1,fp); // read id
+    ret = fread(&qp->type,sizeof(unsigned char),1,fp); // read type id
+    ret = fread(&qp->col,sizeof(unsigned int),1,fp); // read column id
+    ret = fread(&qp->dead,sizeof(unsigned char),1,fp); // read alive/dead status
+    ret = fread(&qp->dvt,sizeof(unsigned int),1,fp); // read divergence size
     //free up old pointers
     if(qp->del){ free(qp->del); free(qp->dvi); free(qp->sprob);
       qp->dvt=0; qp->dvi=(Point_process**)0x0; qp->del=(double*)0x0; qp->sprob=(char *)0x0; }
@@ -1419,15 +1420,15 @@ FUNCTION rddvi () {
     if(!qp->dvt) continue;
     qp->dvi = (Point_process**)malloc(sizeof(Point_process*)*qp->dvt);  
     for(i=0;i<qp->dvt;i++){
-      fread(&iOutID,sizeof(unsigned int),1,fp); // id of output cell
+      ret = fread(&iOutID,sizeof(unsigned int),1,fp); // id of output cell
       if (!(lb=ivoc_list_item(pg->ce,iOutID))) {
         printf("INTF6:callback %d exceeds %d for list ce\n",iOutID,pg->cesz); hxe(); }
       qp->dvi[i]=(Point_process *)lb->u.this_pointer;
     }
     qp->del = (double*)malloc(sizeof(double)*qp->dvt);
-    fread(qp->del,sizeof(double),qp->dvt,fp); // read divergence delays
+    ret = fread(qp->del,sizeof(double),qp->dvt,fp); // read divergence delays
     qp->sprob = (unsigned char*)malloc(sizeof(unsigned char)*qp->dvt);
-    fread(qp->sprob,sizeof(unsigned char),qp->dvt,fp); // read divergence firing probabilities
+    ret = fread(qp->sprob,sizeof(unsigned char),qp->dvt,fp); // read divergence firing probabilities
   }
   printf("\n");
   return 1.0;
@@ -2475,7 +2476,7 @@ PROCEDURE test () {
 : lof can find object information
 PROCEDURE lof () {
 VERBATIM {
-  Object *ob; int num,i,ii,j,k,si,nx;  double *vvo[7], *par; void *vv[7];
+  Object *ob; int num,i,ii,j,k,si,nx;  double *vvo[7], *par; IvocVect *vv[7];
   ob = *(hoc_objgetarg(1));
   si=(int)*getarg(2);
   num = ivoc_list_count(ob);
@@ -2583,13 +2584,13 @@ PROCEDURE chk (f) {
     if (SOP!=nil) {
       vp = SOP;
       printf("p %d size %d tg %g\n",vp->p,vp->size,tg);
-      for (i=0;i<NSV;i++) if (vp->vv[i]) printf("%d %x %x;",i,(unsigned int)vp->vv[i],(unsigned int)vp->vvo[i]);
+      for (i=0;i<NSV;i++) if (vp->vv[i]) printf("%d %p %p;",i,vp->vv[i],vp->vvo[i]);
     } else printf("Recording pointers not initialized");
   }
   if (lfg==2) { 
     printf("Global vectors for input and jitter (jttr): \n");
-    if (pg->vsp!=nil) printf("VSP: %x (%d/%d-%d)\n",(unsigned int)pg->vsp,ip->rvi,ip->rvb,ip->rve); else printf("no VSP\n");
-    if (jsp!=nil) printf("JSP: %x (%d/%d)\n",(unsigned int)jsp,pg->jtpt,pg->jtmax); else printf("no JSP\n");
+    if (pg->vsp!=nil) printf("VSP: %p (%d/%d-%d)\n",pg->vsp,ip->rvi,ip->rvb,ip->rve); else printf("no VSP\n");
+    if (jsp!=nil) printf("JSP: %p (%d/%d)\n",jsp,pg->jtpt,pg->jtmax); else printf("no JSP\n");
   }
   if (lfg==3) { 
     if (pg->vsp!=nil) { printf("VSP: (%d/%d-%d)\n",ip->rvi,ip->rvb,ip->rve); 
@@ -2602,7 +2603,7 @@ PROCEDURE chk (f) {
   if (lfg==5) { 
     printf("wwpt %d wwsz %d\n WW vecs: ",wwpt,wwsz);
     printf("wwwid %g wwht %d nsw %g\n WW vecs: ",wwwid,(int)wwht,nsw);
-    for (i=0;i<NSW;i++) printf("%d %x %x;",i,(unsigned int)ww[i],(unsigned int)wwo[i]);
+    for (i=0;i<NSW;i++) printf("%d %p %p;",i,ww[i],wwo[i]);
   }}
   ENDVERBATIM
 }
@@ -2770,7 +2771,7 @@ PROCEDURE wrecord (te) {
           wwo[wrp][k+j] += scale*_t_Psk[j+max]; // direct copy from the Psk table
         }
       }
-    } else if (twg>=t) { return;
+    } else if (twg>=t) { return 0;
     } else {
       for (ti=twg,k=(int)floor((twg-rebeg)/vdt+0.5);ti<=t && k<wwsz;ti+=vdt,k++) { 
         valps(ti,twg);  // valps() for pop spike calculation
@@ -2948,11 +2949,11 @@ FUNCTION flag () {
   ip=IDP; pg=ip->pg;
   if (FLAG==OK) { // callback -- DO NOT SET FROM HOC
     FLAG=0.;
-    if (stoprun) {slowset=0; return;}
+    if (stoprun) {slowset=0; return 0.0;}
     if (IDP->dbx==-1)printf("slowset fi:%d ix:%d ss:%g delt:%g t:%g\n",fi,ix,slowset,delt,t);
     if (t>slowset || ix>=pg->cesz) {  // done
       printf("Slow-setting of flag %d finished at %g: (%d,%g,%g)\n",fi,t,ix,delt,slowset); 
-      slowset=0.; return;
+      slowset=0.; return 0.0;
     }
     if (ix<pg->cesz) {
       lop(pg->ce,ix);
@@ -2964,12 +2965,12 @@ FUNCTION flag () {
       net_send((void**)0x0, wts,tpnt,delt,OK);
       #endif
     }
-    return;
+    return 0.0;
   }  
   if (slowset>0 && ifarg(3)) {
     printf("INTF6 flag() slowset ERR; attempted set during slowset: fi:%d ix:%d ss:%g delt:%g t:%g",\
            fi,ix,slowset,delt,t); 
-    return;
+    return 0.0;
   }
   ip = IDP; setfl=ifarg(3); 
   if (ifarg(4)) { slowset=*getarg(4); delt=slowset/pg->cesz; slowset+=t; } 
@@ -3017,7 +3018,7 @@ FUNCTION flag () {
 
 FUNCTION allspck () {
   VERBATIM
-  int i; double *x, sum; void *voi;
+  int i; double *x, sum; IvocVect *voi;
   ip = IDP; pg=ip->pg;
   voi=vector_arg(1);  x=vector_newsize(voi,pg->cesz);
   for (i=0,sum=0;i<pg->cesz;i++) { lop(pg->ce,i); 
@@ -3045,7 +3046,7 @@ PROCEDURE resetall () {
 :** floc(x,y[,z]) // find a cell by location
 FUNCTION floc () {
   VERBATIM
-  double x,y,z,r,min,rad, *ix; int ii,i,n,cnt; void* voi;
+  double x,y,z,r,min,rad, *ix; int ii,i,n,cnt; IvocVect* voi;
   cnt=0; n=1000; r=-1;
   ip = IDP; pg=ip->pg;
   x = *getarg(1);
