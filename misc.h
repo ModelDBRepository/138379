@@ -76,7 +76,6 @@ extern int vector_instance_px();
 extern void* vector_arg();
 extern double* vector_vec();
 extern int vector_buffer_size(void*);
-extern unsigned int valseed;
 extern void mcell_ran4_init(unsigned int *idum);
 extern int nrn_mlh_gsort(double* vec, int* base_ptr, int total_elems, int (*cmp)(double, double));
 extern int ivoc_list_count(Object*);

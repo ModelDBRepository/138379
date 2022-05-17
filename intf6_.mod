@@ -26,7 +26,7 @@ VERBATIM
 #include "unistd.h"
 
 static int ctt(unsigned int, char**);
-static int setdvi2(double*,double*,char*,int,int);
+static void setdvi2(double*,double*,char*,int,int);
 void gsort3 (double *, Point_process **, char*, int, double *, Point_process **,char*);
 void gsort2 (double *, Point_process **, int, double *, Point_process **);
 
@@ -1748,7 +1748,7 @@ ENDVERBATIM
 VERBATIM
 // setdvi2(divid_vec,del_vec,syns_vec,div_cnt,flag)
 // flag 1 means just augment, 0or2: sort by del, 0: clear lists and replace
-static int setdvi2 (double *y,double *d,char* s,int dvt,int flag) {
+static void setdvi2 (double *y,double *d,char* s,int dvt,int flag) {
   int i,j,ddvi; double *db, *dbs; unsigned char pdead; unsigned int b,e; char* syns;
   Object *lb; Point_process *pnnt, **da, **das;
   ddvi=(int)DEAD_DIV;
@@ -1787,7 +1787,6 @@ static int setdvi2 (double *y,double *d,char* s,int dvt,int flag) {
   }
   ip->dvt=dvt; ip->del=db; ip->dvi=da; ip->syns=syns;
   if (flag!=1) finishdvi2(ip); // do sort
-  return 0;
 }
 ENDVERBATIM
 
@@ -1920,10 +1919,10 @@ FUNCTION qstats () {
     if (ifarg(1)) {tfo=hoc_obj_file_arg(1); flag=1;} else flag=0;
     lct=cty[IDP->type];
     _lqstats = nrn_event_queue_stats(stt);
-    printf("SPIKES: %d (%u:%u)\n",IDP->spkcnt,spikes[lct],blockcnt[lct]);
+    printf("SPIKES: %d (%ld:%ld)\n",IDP->spkcnt,spikes[lct],blockcnt[lct]);
     printf("QUEUE: Inserted %g; removed %g\n",stt[0],stt[2]);
     if (flag) {
-      fprintf(tfo,"SPIKES: %d (%u:%u);",IDP->spkcnt,spikes[lct],blockcnt[lct]);
+      fprintf(tfo,"SPIKES: %d (%ld:%ld);",IDP->spkcnt,spikes[lct],blockcnt[lct]);
       fprintf(tfo,"QUEUE: Inserted %g; removed %g remaining: %g\n",stt[0],stt[2],_lqstats);
     }
   }
