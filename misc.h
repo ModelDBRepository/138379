@@ -64,6 +64,7 @@ extern double EQV,EQW,EQX,NEQ,SEQ,RXP,IBE,EBI,IBI,EBE;
 
 extern double *vector_newsize (IvocVect* vv, int n);
 #ifndef NRN_VERSION_GTEQ_8_2_0
+extern void cvode_fadvance(double);
 extern double* hoc_pgetarg();
 extern void hoc_notify_iv();
 extern double hoc_call_func(Symbol*, int narg);
@@ -79,7 +80,7 @@ extern int vector_buffer_size(void*);
 extern unsigned int valseed;
 extern void mcell_ran4_init(unsigned int *idum);
 extern double mcell_ran4(unsigned int* idum,double* ran_vec,unsigned int n,double range);
-extern int nrn_mlh_gsort();
+extern int nrn_mlh_gsort(double* vec, int* base_ptr, int total_elems, int (*cmp)(double, double));
 extern int ivoc_list_count(Object*);
 extern Object* ivoc_list_item(Object*, int);
 extern int hoc_is_double_arg(int narg);
@@ -113,9 +114,9 @@ extern void ishuffle(int* x,int nx);
 extern unsigned int valseed;
 extern int list_vector_px2 (Object *ob, int i, double** px, IvocVect** vv);
 extern int list_vector_px3 (Object *ob, int i, double** px, IvocVect** vv);
-extern int cmpdfn();
+extern int cmpdfn(double a, double b);
 extern int openvec(int, double **);
-int list_vector_px();
+int list_vector_px(Object *ob, int i, double** px);
 double *list_vector_resize(Object *ob, int i, int sz);
 static void hxe() { hoc_execerror("",0); }
 extern void FreeListVec(ListVec** pp);
