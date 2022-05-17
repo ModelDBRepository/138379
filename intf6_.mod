@@ -23,6 +23,7 @@ ENDCOMMENT
 VERBATIM
 
 #include "misc.h"
+#include "unistd.h"
 
 static int ctt(unsigned int, char**);
 static int setdvi2(double*,double*,char*,int,int);
@@ -297,7 +298,7 @@ CONSTRUCTOR {
     pathbeg=-1;
     slowset=0; 
     ip->gid = nextGID++; // global identifier
-    process=hoc_pid();
+    process=(int)getpid();
     CNAME[SU]="SU"; CNAME[DP]="DP"; CNAME[IN]="IN";
     if (installed==2.0 && ip->pg) { // jitcondiv was previously run
       sz=ivoc_list_count(ip->pg->ce);
