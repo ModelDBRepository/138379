@@ -64,7 +64,6 @@ extern double EQV,EQW,EQX,NEQ,SEQ,RXP,IBE,EBI,IBI,EBE;
 
 extern double *vector_newsize (IvocVect* vv, int n);
 #ifndef NRN_VERSION_GTEQ_8_2_0
-extern void cvode_fadvance(double);
 extern double* hoc_pgetarg();
 extern void hoc_notify_iv();
 extern double hoc_call_func(Symbol*, int narg);
@@ -79,22 +78,23 @@ extern double* vector_vec();
 extern int vector_buffer_size(void*);
 extern unsigned int valseed;
 extern void mcell_ran4_init(unsigned int *idum);
-extern double mcell_ran4(unsigned int* idum,double* ran_vec,unsigned int n,double range);
 extern int nrn_mlh_gsort(double* vec, int* base_ptr, int total_elems, int (*cmp)(double, double));
 extern int ivoc_list_count(Object*);
-extern Object* ivoc_list_item(Object*, int);
 extern int hoc_is_double_arg(int narg);
 extern int hoc_is_str_arg(int narg);
 extern int hoc_is_object_arg(int narg);
 extern int hoc_is_pdouble_arg(int narg);
-extern Symbol *hoc_get_symbol(char *);
 extern Symbol *hoc_lookup(const char*);
 extern Point_process* ob2pntproc(Object*);
 
 extern char* hoc_object_name(Object*);
 extern double nrn_event_queue_stats(double*);
-extern void clear_event_queue();
 #endif
+extern double mcell_ran4(unsigned int* idum,double* ran_vec,unsigned int n,double range);
+extern void cvode_fadvance(double);
+extern Object* ivoc_list_item(Object*, int);
+extern void clear_event_queue();
+extern Symbol *hoc_get_symbol(char *);
 extern unsigned int hashseed2 (int na, double* x);
 extern unsigned int  dcrsz;
 extern double       *dcr;
