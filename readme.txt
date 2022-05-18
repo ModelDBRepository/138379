@@ -70,4 +70,4 @@ http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/a
 20110418 Updated to run on mswin.  -ModelDB Administrator
 20110419 Additional button window for autolaunch. -ModelDB Administrator
 20111219 readme reformatted. -ModelDB Administrator
-20220517 Edited intf_6.mod and misc.h to support NEURON versions <8.1.0, 8.2.0 and 9.0.0. -NEURON Developers
+20220517 Edited intf_6.mod, misc.h, misc.mod, stats.mod and vecst.mod to support NEURON versions <8.1.0, 8.2.0 and 9.0.0. -NEURON Developers
