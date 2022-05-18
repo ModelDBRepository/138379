@@ -48,6 +48,7 @@ VERBATIM
 #include <time.h>
 #include <stdio.h>
 #include <limits.h>
+#include <misc.h>
 extern int hoc_is_tempobj(int narg);
 ENDVERBATIM
 
@@ -58,7 +59,7 @@ VERBATIM
        errno else will get a nrnoc error.  Seems to be a problem even
        if I don't include <errno.h> */
 
-    char *gargstr(), *filename;
+    char *filename;
 
     filename = gargstr(1);
 
@@ -85,19 +86,18 @@ PROCEDURE sassign() {
 VERBATIM
     FILE *pipein;
     char string[BUFSIZ], **strname, *syscall;
-    char** hoc_pgargstr();
 
     strname = hoc_pgargstr(1);
     syscall = gargstr(2);
 
     if( !(pipein = popen(syscall, "r"))) {
         fprintf(stderr,"System call failed\n");
-        return; 
+        return 0; // TODO: Ask Michael
     }
     
     if (fgets(string,BUFSIZ,pipein) == NULL) {
         fprintf(stderr,"System call did not return a string\n");
-        pclose(pipein); return;
+        pclose(pipein); return 0; // TODO: Ask Michael
     }
 
     /*  assign_hoc_str(strname, string, 0); */
@@ -120,17 +120,17 @@ VERBATIM
 
     if ( !(outfile = fopen("dassign","w"))) {
         fprintf(stderr,"Can't open output file dassign\n");
-        return; 
+        return 0; // TODO: Ask Michael
     }
 
     if( !(pipein = popen(syscall, "r"))) {
         fprintf(stderr,"System call failed\n");
-        fclose(outfile); return; 
+        fclose(outfile); return 0; // TODO: Ask Michael
     }
     
     if (fscanf(pipein,"%lf",&num) != 1) {
         fprintf(stderr,"System call did not return a number\n");
-        fclose(outfile); pclose(pipein); return; 
+        fclose(outfile); pclose(pipein); return 0; // TODO: Ask Michael
     }
 
     fprintf(outfile,"%s=%g\n",strname,num);
@@ -214,7 +214,7 @@ ENDVERBATIM
 FUNCTION hocgetc() {
 VERBATIM
 {	
-  FILE* f, *hoc_obj_file_arg();
+  FILE* f;
   f = hoc_obj_file_arg(1);
   _lhocgetc = (double)getc(f);
 }

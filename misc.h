@@ -8,6 +8,7 @@
 // #include <values.h>  use limits.h above instead
 #include <float.h> // added to declare DBL_MAX etc...
 #include <pthread.h>
+#include <stdint.h>
 
 #if !defined(t)
   #define _pval pval
@@ -76,24 +77,24 @@ extern int vector_instance_px();
 extern void* vector_arg();
 extern double* vector_vec();
 extern int vector_buffer_size(void*);
-extern void mcell_ran4_init(unsigned int *idum);
+extern void mcell_ran4_init(uint32_t idum);
+extern double mcell_ran4(unsigned int* idum,double* ran_vec,unsigned int n,double range);
 extern int nrn_mlh_gsort(double* vec, int* base_ptr, int total_elems, int (*cmp)(double, double));
 extern int ivoc_list_count(Object*);
 extern int hoc_is_double_arg(int narg);
 extern int hoc_is_str_arg(int narg);
 extern int hoc_is_object_arg(int narg);
 extern int hoc_is_pdouble_arg(int narg);
+extern Symbol *hoc_get_symbol(char *);
 extern Symbol *hoc_lookup(const char*);
 extern Point_process* ob2pntproc(Object*);
-
 extern char* hoc_object_name(Object*);
 extern double nrn_event_queue_stats(double*);
-#endif
-extern double mcell_ran4(unsigned int* idum,double* ran_vec,unsigned int n,double range);
-extern void cvode_fadvance(double);
-extern Object* ivoc_list_item(Object*, int);
 extern void clear_event_queue();
-extern Symbol *hoc_get_symbol(char *);
+extern void cvode_fadvance(double);
+extern int hoc_is_tempobj_arg(int narg);
+extern Object* ivoc_list_item(Object*, int);
+#endif
 extern unsigned int hashseed2 (int na, double* x);
 extern unsigned int  dcrsz;
 extern double       *dcr;
@@ -113,6 +114,7 @@ extern void ishuffle(int* x,int nx);
 extern unsigned int valseed;
 extern int list_vector_px2 (Object *ob, int i, double** px, IvocVect** vv);
 extern int list_vector_px3 (Object *ob, int i, double** px, IvocVect** vv);
+extern int list_vector_px4 (Object *ob, int i, double** px, unsigned int n);
 extern int cmpdfn(double a, double b);
 extern int openvec(int, double **);
 int list_vector_px(Object *ob, int i, double** px);
@@ -124,6 +126,9 @@ extern ListVec* AllocILV(Object*, int, double *);
 void FillListVec(ListVec* p,double dval);
 void ListVecResize(ListVec* p,int newsz);
 extern short *nrn_artcell_qindex_;
+extern int IsList (Object* p);
+extern int uniq2 (int n, double *x, double *y, double *z);
+static void vprpr (double x, int base);
 
 static double sc[6];
 static FILE*  testout;

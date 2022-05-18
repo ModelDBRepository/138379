@@ -107,9 +107,6 @@ ENDVERBATIM
 VERBATIM
 // Maintain parallel int vector to avoid slowness of repeated casts 
 int cmpdfn (double a, double b) {return ((a)<=(b))?(((a) == (b))?0:-1):1;}
-int IsObj (Object* p,char* s);
-int IsList (Object* p){return IsObj(p,"List"); }
-int list_vector_px4 (Object *ob, int i, double** px, unsigned int n);
 static unsigned int bufsz=0;
 unsigned int scrsz=0;
 unsigned int *scr=0x0;
@@ -3219,6 +3216,7 @@ int IsObj (Object* p,char* s){
   return !strncmp(hoc_object_name(p),s,strlen(s));
 }
 int IsVector (Object* p){ return IsObj(p,"Vector"); }
+int IsList (Object* p){return IsObj(p,"List"); }
 
 int** getint2D(int rows,int cols) {
   int **pp,*pool,*curPtr; int i;
