@@ -859,6 +859,7 @@ static double hash (void* vv) {
       } else   {  xx.d=vvo[j][i]; }
       if (xx.i[0]==0) { xx.i[0]=xx.i[1]; xx.i[0]<<=4; } // high order bits may be 0
       if (xx.i[1]==0) { xx.i[1]=xx.i[0]; xx.i[1]<<=4; } // low order bits unlikely 0
+      /* casts are trying to preserve (probably buggy) C behaviour in C++ */
       mcell_ran4_init((uint32_t)(uintptr_t)(&xx.i[1]));
       mcell_ran4((unsigned int*)(uintptr_t)(&xx.i[0]), &y, 1, big); // generate a pseudorand number based on these
       prod*=y;  // keep multiplying these out
@@ -1444,7 +1445,7 @@ static double rantran (void* vv) {
   int i,j,ix,ixe,ixvn,nvn,rvn,na,xj;
   double *ixv, *nv, *x, y[1], ixn,step,indx;
   rvn=vector_instance_px(vv, &x);
-  for (na=1;ifarg(na);na++); na--; // count args
+  for (na=1;ifarg(na);na++) {} na--; // count args
   for (i=1;i<na;i+=2) {
     if (hoc_is_object_arg(i)) {
       step=-1;
@@ -2050,6 +2051,7 @@ unsigned int hashseed2 (int na, double* x) {
     if (xx.i[0]==0) { xx.i[0]=xx.i[1]; xx.i[0]<<=4; } // high order bits may be 0
     if (xx.i[1]==0) { xx.i[1]=xx.i[0]; xx.i[1]<<=4; } // low order bits unlikely 0
     xx.i[0]+=(i+1); xx.i[1]+=(i+1); // so different for different order args
+    /* casts are trying to preserve (probably buggy) C behaviour in C++ */
     mcell_ran4_init((uint32_t)(uintptr_t)(&xx.i[1]));
     mcell_ran4((unsigned int*)(uintptr_t)(&xx.i[0]), &y, 1, big); // generate a pseudorand number based on these
     while (y>UINT_MAX) y/=1e9; // UINT_MAX is 4.294967e+09
@@ -2116,6 +2118,7 @@ FUNCTION mc4seed () {
   for (i=2;ifarg(i);i++) {
     valseed*=(unsigned int)(*getarg(i));
   }
+  /* casts are trying to preserve (probably buggy) C behaviour in C++ */
   mcell_ran4_init((uint32_t)(uintptr_t)(&valseed)); // do initialization
   return valseed;
   ENDVERBATIM
