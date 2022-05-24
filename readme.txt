@@ -71,4 +71,5 @@ http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/a
 20110419 Additional button window for autolaunch. -ModelDB Administrator
 20111219 readme reformatted. -ModelDB Administrator
 20220517 Updated MOD files to contain valid C++ and be compatible
-         with the upcoming versions 8.2 and 9.0 of NEURON.
+         with the upcoming versions 8.2 and 9.0 of NEURON. Updated to
+         use post ~2011 signature of mcell_ran4_init function.
