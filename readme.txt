@@ -74,3 +74,5 @@ http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/a
          with the upcoming versions 8.2 and 9.0 of NEURON. Updated to
          use post ~2011 signature of mcell_ran4_init function and fix
          hashseed2 argument.
+20230420 Updated MOD files for compatibility with the new data
+         structures in the upcoming version 9.0 of NEURON.
