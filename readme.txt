@@ -76,3 +76,4 @@ http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/a
          hashseed2 argument.
 20230420 Updated MOD files for compatibility with the new data
          structures in the upcoming version 9.0 of NEURON.
+20240226 Use noiseFromRandom123 for result identity between 8.2 and 9.0
