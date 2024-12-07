@@ -1533,7 +1533,7 @@ proc rdmuniq () { local i,max,min,n,a3,a,see localobj ro,v1,v2,vin,l
   }
   if (!rdmuniqm4) {
     if (ro==nil) ro=new Random()
-    if (see) ro.ACG($5) // seed it
+    if (see) ro.Random123($5) // seed it
     ro.discunif(min,max)
   }
   vin.resize(0)

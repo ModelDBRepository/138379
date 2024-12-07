@@ -59,7 +59,7 @@ proc setspks () { local se,ndx localobj rdm,ce,intf
     printf("CSTIM: no cells to stim!\n")
     return
   }
-  intf=ce.o(0) rdm=new Random() rdm.ACG(iseed) //initialize Random object
+  intf=ce.o(0) rdm=new Random() rdm.Random123(iseed) //initialize Random object
   if(vq==nil) vq=new NQS("ind","time","wt","sy") else vq.clear() //NQS storing INTF6 spike times
   intf.clrvspks() //clear INTF6 spike times
   if(sgrdur>0) {
@@ -108,7 +108,7 @@ proc pulsestim () { local nspk,tt,i,j,nrate,ti,maxt localobj rdp,vqtmp
   if(numarg()>2) {
     if($3) vq.clear() 
   } else vq.clear()  
-  if(numarg()>3) rdp.ACG($4) else rdp.ACG(1234)
+  if(numarg()>3) rdp.Random123($4) else rdp.Random123(1234)
   vqtmp=new NQS()
   tt=1 rdp.poisson(1000/nrate)
   while(tt<=maxt) {
@@ -160,7 +160,8 @@ proc nsstim () { local a,sy,sdx,idx,sglo,sghi,hzlo,hzhi,ct,se localobj rdm,vsy,v
         rsl.append( rds = new Random() )
         rds.negexp(1) // set random # generator using negexp(1) - avg interval in NetStim.interval
         rds.MCellRan4(se,se)  // seeds are in order, shouldn't matter
-        ns.noiseFromRandom(rds) // use random # generator for this NetStim
+        // ns.noiseFromRandom(rds) // use random # generator for this NetStim
+        ns.noiseFromRandom123(se, se, 0) // compatible back to 2016
         vrse.append(se) // save random # seed
 
         ncl.append( nc = new NetCon(ns,col.ce.o(idx)) ) // set the connection (netstim->postsynaptic INTF6 cell)
@@ -482,7 +483,7 @@ proc init () {
 //** initdivrnd(seed) - initializes random object for wiring
 obfunc initdivrnd () { local s localobj rd
   s=$1
-  if(setdviPT==PARETO) rd=new rdmpareto(1,PARETOSH,s) else {rd=new Random() rd.ACG(s)}
+  if(setdviPT==PARETO) rd=new rdmpareto(1,PARETOSH,s) else {rd=new Random() rd.Random123(s)}
   return rd
 }
 

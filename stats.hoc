@@ -15,10 +15,10 @@ proc init () {
   avg=$1 shape=$2
   if(numarg()>2)seed=$3 else seed=1234
   rd=new Random()
-  rd.ACG(seed)
+  rd.Random123(seed)
 }
 proc reset () {
-  rd.ACG(seed)
+  rd.Random123(seed)
 }
 func paretoc () { local scale,shape,U
   scale=$1 shape=$2 U = rd.uniform(0,1)
