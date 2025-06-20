@@ -33,12 +33,10 @@ This simulation was used in an article at *Frontiers in Computational Neuroscien
 Article available at:  
 [http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/abstract](http://www.frontiersin.org/Computational_Neuroscience/10.3389/fncom.2011.00019/abstract)
 
+---
 20110418 Updated to run on mswin. -ModelDB Administrator  
 20110419 Additional button window for autolaunch. -ModelDB Administrator  
 20111219 readme reformatted. -ModelDB Administrator  
 20220517 Updated MOD files to contain valid C++ and be compatible with the upcoming versions 8.2 and 9.0 of NEURON. Updated to use post ~2011 signature of mcell_ran4_init function and fix hashseed2 argument.  
 20230420 Updated MOD files for compatibility with the new data structures in the upcoming version 9.0 of NEURON.
-
----
-
-2025-06-20: Converted README to Markdown.
+20250620 Converted README to Markdown.
